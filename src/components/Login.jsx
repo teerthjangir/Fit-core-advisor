@@ -22,7 +22,7 @@ const Login = ({ onBack, onLogin }) => {
           console.log('Backend Login Success:', data.user);
           onLogin(data.user); // Route to dashboard on success
         } else {
-          alert('Backend authentication failed.');
+          alert(data.message || 'Backend authentication failed.');
         }
       } catch (err) {
         console.error('Backend connection error:', err);

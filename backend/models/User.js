@@ -35,6 +35,21 @@ const userSchema = new mongoose.Schema({
   bodyGoal: {
     type: String
   },
+  age: Number,
+  gender: String,
+  height: Number,
+  weight: Number,
+  activityLevel: String,
+  sleepHours: Number,
+  stressLevel: String,
+  primaryGoal: String,
+  dietaryPreference: String,
+  wantGymAdvice: String,
+  exerciseFrequency: String,
+  waterIntake: String,
+  dietQuality: String,
+  waistCircumference: Number,
+  previousAttempts: String,
   healthScore: {
     type: Number,
     default: 0,

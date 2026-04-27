@@ -56,7 +56,11 @@ app.post('/api/auth/google', async (req, res) => {
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.error('Auth Error:', error);
-    res.status(401).json({ success: false, message: 'Invalid token' });
+    if (error.name === 'MongooseServerSelectionError') {
+      res.status(500).json({ success: false, message: 'Database connection failed. Please check your MongoDB Atlas IP whitelist.' });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid token or authentication failed' });
+    }
   }
 });
 
@@ -70,10 +74,19 @@ app.post('/api/assessment', async (req, res) => {
     const isAssessment = formData.activityLevel !== undefined;
     const dayLabel = isAssessment ? 'Assessment' : `Day ${user.dailyLogs.length}`;
 
-    if (formData.bodyGoal) {
-      user.bodyGoal = formData.bodyGoal;
-    }
+    const assessmentFields = [
+      'age', 'gender', 'height', 'weight', 'activityLevel', 
+      'sleepHours', 'stressLevel', 'primaryGoal', 'dietaryPreference', 
+      'wantGymAdvice', 'bodyGoal', 'exerciseFrequency', 'waterIntake', 
+      'dietQuality', 'waistCircumference', 'previousAttempts'
+    ];
     
+    assessmentFields.forEach(field => {
+      if (formData[field] !== undefined) {
+        user[field] = formData[field];
+      }
+    });
+
     if (formData.medicalConditions !== undefined) {
       user.medicalConditions = formData.medicalConditions.split(',').map(c => c.trim()).filter(c => c);
     }
