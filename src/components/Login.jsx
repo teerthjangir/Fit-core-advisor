@@ -118,7 +118,7 @@ const Login = ({ onBack, onLogin }) => {
 
               <div>
                 <a
-                  href="https://github.com/teerthjangir/Fit-core-advisor"
+                  href="https://github.com/teerthjangir"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 transition-colors hover:text-slate-900"
