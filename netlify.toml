@@ -2,10 +2,14 @@
   publish = "dist"
   command = "npm run build"
 
-# Proxy /api requests to your live backend (Replace the URL once you deploy the backend)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Proxy /api requests to Netlify Function
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR_BACKEND_URL.onrender.com/api/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 

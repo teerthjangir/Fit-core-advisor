@@ -1,4 +1,5 @@
 import express from 'express';
+import serverless from 'serverless-http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
@@ -8,22 +9,35 @@ import User from './models/User.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const router = express.Router();
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || "1089617758648-6frjuip8u45hokusvih77crerbn2qgl9.apps.googleusercontent.com");
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+// MongoDB connection with caching for serverless environments
+let conn = null;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/fitcore';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
 
-// Routes
-app.post('/api/auth/google', async (req, res) => {
+const connectDB = async () => {
+  if (conn) return conn;
+  
   try {
+    conn = await mongoose.connect(MONGODB_URI);
+    console.log('Connected to MongoDB');
+    return conn;
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    throw err;
+  }
+};
+
+// Routes - We use router instead of app for serverless
+router.post('/auth/google', async (req, res) => {
+  try {
+    await connectDB();
     const { access_token } = req.body;
     
     // Fetch user info using the access token
@@ -51,8 +65,6 @@ app.post('/api/auth/google', async (req, res) => {
       await user.save();
     }
     
-    // In a real app, you would create a JWT session token here
-    // For now, we just return the user object
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.error('Auth Error:', error);
@@ -64,8 +76,9 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
-app.post('/api/assessment', async (req, res) => {
+router.post('/assessment', async (req, res) => {
   try {
+    await connectDB();
     const { userId, formData, score } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -104,8 +117,9 @@ app.post('/api/assessment', async (req, res) => {
   }
 });
 
-app.post('/api/medical', async (req, res) => {
+router.post('/medical', async (req, res) => {
   try {
+    await connectDB();
     const { userId, medicalConditions, medications } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -120,8 +134,9 @@ app.post('/api/medical', async (req, res) => {
   }
 });
 
-app.post('/api/user/mealplan', async (req, res) => {
+router.post('/user/mealplan', async (req, res) => {
   try {
+    await connectDB();
     const { userId, weeklyPlan } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -135,8 +150,9 @@ app.post('/api/user/mealplan', async (req, res) => {
   }
 });
 
-app.post('/api/user/bodygoal', async (req, res) => {
+router.post('/user/bodygoal', async (req, res) => {
   try {
+    await connectDB();
     const { userId, bodyGoal } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -150,8 +166,9 @@ app.post('/api/user/bodygoal', async (req, res) => {
   }
 });
 
-app.post('/api/user/gymplan', async (req, res) => {
+router.post('/user/gymplan', async (req, res) => {
   try {
+    await connectDB();
     const { userId, gymPlan } = req.body;
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -165,6 +182,8 @@ app.post('/api/user/gymplan', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Use the router - mount at /api (This handles /api/auth/google when deployed)
+app.use('/api', router);
+
+// Export the wrapped app for Netlify
+export const handler = serverless(app);
