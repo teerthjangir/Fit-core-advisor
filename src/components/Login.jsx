@@ -102,7 +102,7 @@ const Login = ({ onBack, onLogin }) => {
 
               <div>
                 <a
-                  href="https://www.instagram.com/teerth__g?igsh=NHdxN2ZrenJnYzB5"
+                  href="https://www.instagram.com/teerthjangra?igsh=MW9ibXdpaW41eWRjaA=="
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-slate-200 rounded-xl shadow-sm bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 transition-colors hover:text-pink-600"
